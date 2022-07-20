@@ -69,3 +69,15 @@ class Book(models.Model):
     @property
     def available(self):
         return self.total - self.sold
+
+
+class Comment(models.Model):
+    comment = models.TextField()
+    book = models.ForeignKey(Book, related_name="comments", on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created", )
+    
+    def __str__(self):
+        return self.comment

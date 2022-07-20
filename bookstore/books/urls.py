@@ -8,4 +8,5 @@ urlpatterns = [
     path("logout", views.logout, name="logout"),
     path("statistics", views.statistics, name="statistics"),
     path("books/<slug:slug>", views.book, name="book"),
+    path("comment", views.comment, name="comment"),
 ]

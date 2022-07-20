@@ -2,14 +2,16 @@
 
 {% block content %}
     {% if user %}
-        {{ user.username }}
-        Books list: <br/>
+        Hello, {{ user.username }}!<br/>
+        <br/>
+        Book list: <br/>
         {% for book in books %}
             <a href="{{ book.get_url }}">{{ book.title }}</a><br/>
         {% endfor %}
         {% if user.is_staff %}
         <a href="statistics">Sales stats</a><br/>
     {% endif %}
+        <br/>
         <a href="{% url 'logout' %}">Logout</a>
     {% else %}
         Please log in: <br/>

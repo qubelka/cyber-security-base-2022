@@ -1,15 +1,24 @@
 from functools import wraps
 from django.contrib import messages
+from django.shortcuts import redirect
 from django.http import Http404
+
 # A02:2021 – Cryptographic Failures fix: use Django built-in User model
 # from django.contrib.auth.models import User
-from .models import User
+from .models import Book, User
 
 
 def get_user(username):
     try:
         return User.objects.get(username=username)
     except User.DoesNotExist:
+        return None
+
+
+def get_book(slug):
+    try:
+        return Book.objects.get(slug=slug)
+    except Book.DoesNotExist:
         return None
 
 
@@ -34,7 +43,20 @@ def check_registration(request, username, password1, password2):
 def user_is_authenticated(request):
     return request.session.get("username")
 
-'''
+
+def login_required(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        if user_is_authenticated(request):
+            return function(request, *args, **kwargs)
+        else:
+            messages.error(request, "You have to be logged in to access this page.")
+            return redirect("index")
+
+    return wrap
+
+
+"""
 A01:2021 – Broken Access Control fix:
 Decorator checks whether the user is staff member.
 
@@ -48,4 +70,4 @@ def staff_only(function):
             raise Http404("Page statistics does not exist.")
 
     return wrap
-'''
+"""
