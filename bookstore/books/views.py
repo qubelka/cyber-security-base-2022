@@ -29,6 +29,10 @@ def index(request):
 def book(request, slug):
     book = get_object_or_404(Book, slug=slug)
     comments = book.comments.all()
+
+    # A03:2021 – Injection fix: use Django templates
+    # return render(request, "books/book.html", {"book" : book, "comments": comments})
+    
     comments_as_string = ""
     for comment in comments:
         comments_as_string += str(comment) + "<br/>"
@@ -101,6 +105,8 @@ def statistics(request):
 
 @require_POST
 @login_required
+# A03:2021 – Injection fix: use Django templates
+# def comment(request, slug):
 def comment(request):
     comment = request.POST.get("comment")
     slug = request.POST.get("book_slug")

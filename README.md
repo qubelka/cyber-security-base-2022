@@ -109,3 +109,55 @@ from django.contrib.auth.models import User
 # from .models import User
 ...
 ```
+
+### 3. [A03:2021 – Injection](https://owasp.org/Top10/A03_2021-Injection/)
+
+**Problem**: `book`-view renders plain HTML and contains a form for leaving comments. This page is vulnerable to Cross Site Scripting (XSS) attacks. 
+
+For example by leaving a comment 
+```javascript 
+<script>window.location="https://craftinginterpreters.com";</script>
+```
+page visitors will be always redirected to the site `craftinginterpreters.com`. 
+
+**Fix**: Use Django templates. Django templates protect against the majority of XSS attacks. The following changes to the code will enable Django template in `book`-view:
+
+**urls.py**
+```python 
+urlpatterns = [
+    ...
+    path("comment/<slug:slug>", views.comment, name="comment"),
+]
+```
+
+**views.py**
+```python 
+@login_required
+def book(request, slug):
+    book = get_object_or_404(Book, slug=slug)
+    comments = book.comments.all()
+    return render(request, "books/book.html", {"book" : book, "comments": comments})
+```
+
+**book.html**
+
+```html
+{% extends "books/base.html" %}
+
+{% block content %}
+    {{ book.title }}<br/>
+    {{ book.author }}<br/>
+    {{ book.published }}<br/>
+    <br/>
+    Leave a comment:<br/>
+    <form action="{% url 'comment' book.slug %}" method="POST">
+        {% csrf_token %}
+        <input type="text" name="comment"><br/>
+        <input type="submit" value="add comment">
+    </form>
+    <br/>
+    {% for comment in comments %}
+        {{ comment }}<br/>
+    {% endfor %}
+{% endblock %}
+```
