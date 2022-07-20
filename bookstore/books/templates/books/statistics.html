@@ -1,0 +1,7 @@
+{% block content %}
+    {% for book in stats %}
+        {{ book.title }}<br/>
+        Available: {{ book.available }}<br/>
+        Units sold: {{ book.sold }}<br/>
+    {% endfor %}
+{% endblock %}
