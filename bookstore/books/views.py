@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
-from .models import User, Book
+# A02:2021 – Cryptographic Failures fix: use Django built-in User model
+# from django.contrib.auth.models import User
+from .models import Book, User
 from .helpers import check_registration, authenticate, get_user, user_is_authenticated
 
 
@@ -28,6 +30,8 @@ def register(request):
 
         if check_registration(request, username, password1, password2):
             try:
+                # A02:2021 – Cryptographic Failures fix: use Django built-in User model:
+                # user = User.objects.create_user(username=username, password=password1)
                 user = User.objects.create_user(username, password1)
                 if user:
                     authenticate(request, username, password1)

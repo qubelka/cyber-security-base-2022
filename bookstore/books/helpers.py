@@ -1,6 +1,8 @@
 from functools import wraps
 from django.contrib import messages
 from django.http import Http404
+# A02:2021 – Cryptographic Failures fix: use Django built-in User model
+# from django.contrib.auth.models import User
 from .models import User
 
 
