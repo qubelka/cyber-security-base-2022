@@ -3,13 +3,11 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
 from .models import User, Book
-from .helpers import check_registration, authenticate, get_user
+from .helpers import check_registration, authenticate, get_user, user_is_authenticated
 
 
 def index(request):
-    user = None
-    if request.session.get("username"):
-        user = get_user(request.session.get("username"))
+    user = get_user(request.session.get("username"))
     books = Book.objects.all()
     return render(request, "books/index.html", {"user": user, "books": books})
 
@@ -21,7 +19,7 @@ def book(request, slug):
 
 
 def register(request):
-    if request.session.get("username"):
+    if user_is_authenticated(request):
         return redirect("index")
     if request.method == "POST":
         username = request.POST.get("username")
@@ -50,12 +48,15 @@ def login(request):
 
 
 def logout(request):
-    username = request.session.get("username")
-    if username:
+    if user_is_authenticated(request):
         del request.session["username"]
     return redirect("index")
 
+# A01:2021 – Broken Access Control fix:
+# Decorator checks whether the user is staff member.
+# Decorator code in helpers.py
 
+# @staff_only 
 def statistics(request):
     stats = Book.objects.all()
     return render(request, "books/statistics.html", {"stats": stats})

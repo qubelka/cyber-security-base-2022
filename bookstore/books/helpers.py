@@ -1,4 +1,6 @@
+from functools import wraps
 from django.contrib import messages
+from django.http import Http404
 from .models import User
 
 
@@ -25,3 +27,23 @@ def check_registration(request, username, password1, password2):
         messages.error(request, "Username already registered.")
         return False
     return True
+
+
+def user_is_authenticated(request):
+    return request.session.get("username")
+
+'''
+A01:2021 – Broken Access Control fix:
+Decorator checks whether the user is staff member.
+
+def staff_only(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        username = user_is_authenticated(request)
+        if username and get_user(username).is_staff:
+            return function(request, *args, **kwargs)
+        else:
+            raise Http404("Page statistics does not exist.")
+
+    return wrap
+'''
