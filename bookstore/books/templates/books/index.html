@@ -4,15 +4,29 @@
     {% if user %}
         Hello, {{ user.username }}!<br/>
         <br/>
-        Book list: <br/>
-        {% for book in books %}
-            <a href="{{ book.get_url }}">{{ book.title }}</a><br/>
-        {% endfor %}
+        <h2>Book list:</h2>
+        <table>
+            <thead>
+                <th>Title</th>
+                <th>Purchase</th>
+            </thead>
+            <tbody>
+            {% for book in books %}
+                <tr>            
+                    <td><a href="{{ book.get_url }}">{{ book.title }}</a></td>
+                    {% if book.in_stock %}
+                        <td><a href="#">Order</a></td>
+                    {% else %}
+                        <td>Sold out</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
         {% if user.is_staff %}
         <a href="statistics">Sales stats</a><br/>
     {% endif %}
-        <br/>
-        <a href="{% url 'logout' %}">Logout</a>
     {% else %}
         Please log in: <br/>
         <form action="login" method="POST">
@@ -21,7 +35,7 @@
             <input type="text" name="username"><br/>
             Password: 
             <input type="password" name="password"><br/>
-            <input type="submit" value="login">
+            <input class="button" type="submit" value="login">
         </form>
         <br/>
         Don't have an account yet? 
