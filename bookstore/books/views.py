@@ -6,9 +6,13 @@ from django.http import HttpResponse
 from django.middleware import csrf
 from django.views.decorators.http import require_POST
 
+# A07:2021 – Identification and Authentication Failures fix: use Django built-in UserCreationForm and User model
+# from django.contrib.auth.forms import UserCreationForm
+
 # A02:2021 – Cryptographic Failures fix: use Django built-in User model
 # from django.contrib.auth.models import User
-from .models import Book, Comment, User
+from .models import User
+from .models import Book, Comment
 from .helpers import (
     check_registration,
     authenticate,
@@ -32,7 +36,7 @@ def book(request, slug):
 
     # A03:2021 – Injection fix: use Django templates
     # return render(request, "books/book.html", {"book" : book, "comments": comments})
-    
+
     comments_as_string = ""
     for comment in comments:
         comments_as_string += str(comment) + "<br/>"
@@ -54,6 +58,30 @@ def book(request, slug):
     {comments_as_string}
     """
     return HttpResponse(book_page_without_template)
+
+
+"""
+# A07:2021 – Identification and Authentication Failures fix: 
+# use Django built-in UserCreationForm and User model
+
+def register(request):
+    if user_is_authenticated(request):
+        return redirect("index")
+    if request.method == "POST":
+        registration_form = UserCreationForm(request.POST)
+        if registration_form.is_valid():
+            cleaned_data = registration_form.cleaned_data
+            if not get_user(cleaned_data["username"]):
+                user = registration_form.save(commit=False)
+                user.set_password(registration_form.cleaned_data["password1"])
+                user.save()
+                return redirect("index")
+            else:
+                messages.error(request, "Username already registered.")
+    else:
+        registration_form = UserCreationForm()
+    return render(request, "books/register_with_forms.html", {"registration_form": registration_form})
+"""
 
 
 def register(request):

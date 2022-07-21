@@ -1,0 +1,16 @@
+<!--# A07:2021 – Identification and Authentication Failures fix: 
+    use Django built-in UserCreationForm and User model-->
+
+{% extends "books/base.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'register' %}" method="POST">
+    {% csrf_token %}
+    {{ registration_form.as_p }}
+    <input type="submit" value="Register">
+</form>
+{% endblock %}

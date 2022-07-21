@@ -3,9 +3,11 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.http import Http404
 
+# A07:2021 – Identification and Authentication Failures fix: use Django built-in UserCreationForm and User model
 # A02:2021 – Cryptographic Failures fix: use Django built-in User model
 # from django.contrib.auth.models import User
-from .models import Book, User
+from .models import User
+from .models import Book
 
 
 def get_user(username):

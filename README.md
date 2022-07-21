@@ -92,6 +92,7 @@ and import `User` from `django.contrib.auth.models` in **views.py** and **helper
 **views.py**
 ```python
 from django.contrib.auth.models import User
+# from .models import User
 
 def register(request):
     if user_is_authenticated(request):
@@ -171,5 +172,89 @@ def book(request, slug):
     {% for comment in comments %}
         {{ comment }}<br/>
     {% endfor %}
+{% endblock %}
+```
+
+### 4. [A07:2021 – Identification and Authentication Failures](https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/)
+
+> *"There may be authentication weaknesses if the application: Permits default, weak, or well-known passwords, such as "Password1" or "admin/admin"."*
+
+**Problem**: `User`-model does not have any password validation checks. Users are allowed to use weak passwords, such as "Password1". 
+
+**Fix**: Use Django built-in `UserCreationForm` which by default enforces strong passwords. 
+
+**views.py**
+
+```python
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+# from .models import User
+"""
+##################
+OLD IMPLEMENTATION
+##################
+def register(request):
+    if user_is_authenticated(request):
+        return redirect("index")
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password1 = request.POST.get("password1")
+        password2 = request.POST.get("password2")
+
+        if check_registration(request, username, password1, password2):
+            try:
+                user = User.objects.create_user(username, password1)
+                if user:
+                    authenticate(request, username, password1)
+                    return redirect("index")
+            except ValidationError as e:
+                messages.error(request, e.messages[0])
+    return render(request, "books/register.html")
+"""
+
+def register(request):
+    if user_is_authenticated(request):
+        return redirect("index")
+    if request.method == "POST":
+        registration_form = UserCreationForm(request.POST)
+        if registration_form.is_valid():
+            cleaned_data = registration_form.cleaned_data
+            if not get_user(cleaned_data["username"]):
+                user = registration_form.save(commit=False)
+                user.set_password(registration_form.cleaned_data["password1"])
+                user.save()
+                return redirect("index")
+            else:
+                messages.error(request, "Username already registered.")
+    else:
+        registration_form = UserCreationForm()
+    return render(request, "books/register_with_forms.html", {"registration_form": registration_form})
+```
+
+We also change **helpers.py** to use Django built-in `User`-model with `UserCreationForm`:
+
+**helpers.py**
+```python
+from django.contrib.auth.models import User
+# from .models import User
+...
+```
+
+And create a new registration template which uses forms:
+
+**register_with_forms.html**
+```html
+% extends "books/base.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'register' %}" method="POST">
+    {% csrf_token %}
+    {{ registration_form.as_p }}
+    <input type="submit" value="Register">
+</form>
 {% endblock %}
 ```
