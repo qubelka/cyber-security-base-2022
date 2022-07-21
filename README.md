@@ -7,6 +7,13 @@ $ cd bookstore
 $ python3 manage.py runserver 
 ```
 
+App has two users:
+
+| Role         | username | password  |
+| :---         |  :----:  |    ---:   |
+| Regular user | user     | password  |
+| Staff member | admin    | password  |
+
 ## Project has the following vulnerabilities  from OWASP Top10:2021 list:
 
 ### 1. [A01:2021 – Broken Access Control](https://owasp.org/Top10/A01_2021-Broken_Access_Control/)
