@@ -1,9 +1,17 @@
 # Cyber security base 2022 course project 
 
+## Running the application
+
+```sh
+$ cd bookstore
+$ python3 manage.py runserver 
+```
+
 ## Project has the following vulnerabilities  from OWASP Top10:2021 list:
 
 ### 1. [A01:2021 – Broken Access Control](https://owasp.org/Top10/A01_2021-Broken_Access_Control/)
 
+> *"Bypassing access control checks by modifying the URL (parameter tampering or force browsing), internal application state, or the HTML page, or by using an attack tool modifying API requests."*
 
 **Problem**: `index.html` has a link to statistics-page which should be visible only to the staff, but the statistics view function does not check whether the user accessing the page is staff member or not. Anyone, even the users that are not registered can access the page by going to the url `localhost:8000/statistics`.
 
@@ -34,6 +42,8 @@ def statistics(request):
 
 ### 2. [A02:2021 – Cryptographic Failures](https://owasp.org/Top10/A02_2021-Cryptographic_Failures/)
 
+> *"Are deprecated hash functions such as MD5 or SHA1 in use, or are non-cryptographic hash
+functions used when cryptographic hash functions are needed?"*
 
 **Problem**: User passwords are hashed using deprecated hash function MD5
 
@@ -112,10 +122,12 @@ from django.contrib.auth.models import User
 
 ### 3. [A03:2021 – Injection](https://owasp.org/Top10/A03_2021-Injection/)
 
+> *"User-supplied data is not validated, filtered, or sanitized by the application."*
+
 **Problem**: `book`-view renders plain HTML and contains a form for leaving comments. This page is vulnerable to Cross Site Scripting (XSS) attacks. 
 
 For example by leaving a comment 
-```javascript 
+```html 
 <script>window.location="https://craftinginterpreters.com";</script>
 ```
 page visitors will be always redirected to the site `craftinginterpreters.com`. 
