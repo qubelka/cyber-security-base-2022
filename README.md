@@ -258,3 +258,42 @@ And create a new registration template which uses forms:
 </form>
 {% endblock %}
 ```
+
+### 5. [A05:2021 – Security Misconfiguration](https://owasp.org/Top10/A05_2021-Security_Misconfiguration/)
+
+> *"Error handling reveals stack traces or other overly informative error messages to users."*
+
+**Problem**: `DEBUG`-mode is enabled in **settings.py** file, so some errors reveal stack trace and other detailed information for debugging. If this project is meant to be used in production, `DEBUG`-mode needs to be disabled.
+
+**Fix**: Set `DEBUG` to `False` and provide the list of allowed hosts.
+
+**bookstore/bookstore/settings.py**
+```python
+...
+DEBUG = False
+ALLOWED_HOSTS = ["*"] 
+...
+```
+
+### 6. [A07:2021 – Identification and Authentication Failures](https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/)
+
+> CWE-255 Credentials Management Errors &rarr; Password in Configuration File
+
+**Problem**: **settings.py** contains `SECRET_KEY`
+
+**Fix**: Make `SECRET_KEY` an environment variable:
+
+```sh
+$ export SECRET_KEY=secret
+```
+
+**bookstore/bookstore/settings.py**
+```python
+import os
+from django.core.exceptions import ImproperlyConfigured
+
+try: 
+    SECRET_KEY = os.environ['SECRET_KEY']
+except KeyError:
+    raise ImproperlyConfigured("SECRET_KEY missing from environment variables.")
+```

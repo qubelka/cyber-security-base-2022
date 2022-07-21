@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+# 6. A07:2021 – Identification and Authentication Failures fix: make SECRET_KEY environment variable
+# import os
+# from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,11 +25,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-&f7)%=_8pb=+222o8za^$oe+wg6+gj+ksq0w43c(3x=gsb%z#j'
 
+"""
+6. A07:2021 – Identification and Authentication Failures fix: 
+   make SECRET_KEY environment variable
+
+try: 
+    SECRET_KEY = os.environ['SECRET_KEY']
+except KeyError:
+    raise ImproperlyConfigured("SECRET_KEY missing from environment variables.")
+"""
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
+"""
+A05:2021 – Security Misconfiguration fix: 
+disable DEBUG mode in production
+
+DEBUG = False
+ALLOWED_HOSTS = [list hosts here]
+"""
 
 # Application definition
 
