@@ -81,9 +81,7 @@ def register(request):
         if registration_form.is_valid():
             cleaned_data = registration_form.cleaned_data
             if not get_user(cleaned_data["username"]):
-                user = registration_form.save(commit=False)
-                user.set_password(registration_form.cleaned_data["password1"])
-                user.save()
+                registration_form.save()
                 authenticate(request, cleaned_data["username"], cleaned_data["password1"])
                 return redirect("index")
             else:

@@ -10,7 +10,19 @@
 {% block content %}
 <form action="{% url 'register' %}" method="POST">
     {% csrf_token %}
-    {{ registration_form.as_p }}
+
+    {% for error in registration_form.errors.values %}
+        {{ error }}
+    {% endfor %}
+
+    {% for field in registration_form %}
+        <div>
+            {{ field.label_tag }} {{ field }}
+            {% if field.help_text %}
+                <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
     <input type="submit" value="Register">
 </form>
 {% endblock %}

@@ -35,11 +35,11 @@ a {
     align-items: center;
 }
 
-ul.messages {
+ul.messages, ul.errorlist  {
     list-style:none;
 }
 
-.error {
+.error, .errorlist li {
     background-color:azure;
     padding: 10px;
     margin: 10px;

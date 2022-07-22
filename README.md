@@ -215,6 +215,28 @@ with the text *4. A07:2021 – Identification and Authentication Failures fix*:
 
 ```python
 """
+# 4. A07:2021 – Identification and Authentication Failures fix: 
+# use Django built-in UserCreationForm and User model
+"""
+def register(request):
+    if user_is_authenticated(request):
+        return redirect("index")
+    if request.method == "POST":
+        registration_form = UserCreationForm(request.POST)
+        if registration_form.is_valid():
+            cleaned_data = registration_form.cleaned_data
+            if not get_user(cleaned_data["username"]):
+                user = registration_form.save(commit=False)
+                user.set_password(registration_form.cleaned_data["password1"])
+                user.save()
+                return redirect("index")
+            else:
+                messages.error(request, "Username already registered.")
+    else:
+        registration_form = UserCreationForm()
+    return render(request, "books/register_with_forms.html", {"registration_form": registration_form})
+
+"""
 ##################
 OLD IMPLEMENTATION
 ##################
@@ -236,24 +258,6 @@ def register(request):
                 messages.error(request, e.messages[0])
     return render(request, "books/register.html")
 """
-
-def register(request):
-    if user_is_authenticated(request):
-        return redirect("index")
-    if request.method == "POST":
-        registration_form = UserCreationForm(request.POST)
-        if registration_form.is_valid():
-            cleaned_data = registration_form.cleaned_data
-            if not get_user(cleaned_data["username"]):
-                user = registration_form.save(commit=False)
-                user.set_password(registration_form.cleaned_data["password1"])
-                user.save()
-                return redirect("index")
-            else:
-                messages.error(request, "Username already registered.")
-    else:
-        registration_form = UserCreationForm()
-    return render(request, "books/register_with_forms.html", {"registration_form": registration_form})
 ```
 
 Fixed view uses the register_with_forms.html-template:
