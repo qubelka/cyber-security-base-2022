@@ -17,6 +17,7 @@ from .models import Book, Comment
 # A01:2021 – Broken Access Control fix:
 # Decorator checks whether the user is staff member.
 # from .helpers import staff_only
+
 from .helpers import (
     check_registration,
     authenticate,

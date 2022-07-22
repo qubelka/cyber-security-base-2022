@@ -28,6 +28,10 @@ Uncomment the decorator code in **helpers.py**:
 
 **books/helpers.py**
 ```python
+"""
+A01:2021 – Broken Access Control fix:
+Decorator checks whether the user is staff member.
+"""
 def staff_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
@@ -99,6 +103,8 @@ def register(request):
             return redirect("index")
     return render(request, "books/register.html")
 ```
+
+New users will be saved into `auth_user` table. 
 
 ### 3. [A03:2021 – Injection](https://owasp.org/Top10/A03_2021-Injection/)
 
@@ -173,9 +179,10 @@ Fixed view uses the book.html-template:
     {{ book.published }}<br/>
     <br/>
     Leave a comment:<br/>
-    <form action="{% url 'comment' book.slug %}" method="POST">
+    <form action="{% url 'comment' %}" method="POST">
         {% csrf_token %}
         <input type="text" name="comment"><br/>
+        <input type="hidden" name="book_slug" value="{{ book.slug }}">
         <input type="submit" value="add comment">
     </form>
     <br/>
@@ -278,6 +285,8 @@ Fixed view uses the register_with_forms.html-template:
 </form>
 {% endblock %}
 ```
+
+New users will be saved into `auth_user` table. 
 
 ### 5. [A05:2021 – Security Misconfiguration](https://owasp.org/Top10/A05_2021-Security_Misconfiguration/)
 
