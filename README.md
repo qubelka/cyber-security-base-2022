@@ -22,10 +22,11 @@ App has two users:
 
 **Problem**: `index.html` has a link to statistics-page which should be visible only to the staff, but the statistics view function does not check whether the user accessing the page is staff member or not. Anyone, even the users that are not registered can access the page by going to the url `localhost:8000/statistics`.
 
-**Fix**: add decorator that checks whether the user is staff member before running the view function:
+**Fix**: add decorator that checks whether the user is staff member before running the view function
 
+Uncomment the decorator code in **helpers.py**:
 
-**helpers.py**
+**books/helpers.py**
 ```python
 def staff_only(function):
     @wraps(function)
@@ -39,8 +40,13 @@ def staff_only(function):
     return wrap
 ```
 
-**views.py**
+Uncomment the rows that import and apply the decorator:
+
+**books/views.py**
 ```python
+...
+from .helpers import staff_only
+...
 @staff_only 
 def statistics(request):
     stats = Book.objects.all()
@@ -56,51 +62,23 @@ functions used when cryptographic hash functions are needed?"*
 
 **Fix**: Use built-in Django `User` model. By default, Django uses the PBKDF2 algorithm with a SHA256 hash for password hashing. 
 
-We can comment out existing `User` model code:
+Import the `User` model from `django.contrib.auth.models` instead of `.models` in **views.py** and **helpers.py**:
 
-**models.py**
-```python
-'''
-class UserManager(models.Manager):
-    def create_user(self, username, password):
-        if username == "":
-            raise ValidationError({"username": ("Username is required.")})
-        if password == "":
-            raise ValidationError({"password": ("Password is required.")})
-        if len(username) > 150:
-            raise ValidationError(
-                {"username": ("Username must be max 150 characters long.")}
-            )
-        user = self.model(username=username)
-        user.set_password(password)
-        user.save()
-        return user
-
-
-class User(models.Model):
-    username = models.CharField(max_length=150, unique=True)
-    password = models.CharField(max_length=32)
-    is_staff = models.BooleanField(default=False)
-    objects = UserManager()
-
-    def __str__(self):
-        return self.username
-
-    def set_password(self, password):
-        self.password = hashlib.md5(password.encode()).hexdigest()
-
-    def check_password(self, password):
-        return hashlib.md5(password.encode()).hexdigest() == self.password
-'''
-```
-
-and import `User` from `django.contrib.auth.models` in **views.py** and **helpers.py**:
-
-**views.py**
+**books/views.py**
 ```python
 from django.contrib.auth.models import User
 # from .models import User
+```
 
+**books/helpers.py**
+```python
+from django.contrib.auth.models import User
+# from .models import User
+```
+
+In **books/views.py** change **register()** view to use Django `User` model:
+
+```python
 def register(request):
     if user_is_authenticated(request):
         return redirect("index")
@@ -112,6 +90,7 @@ def register(request):
         if check_registration(request, username, password1, password2):
             try:
                 user = User.objects.create_user(username=username, password=password1)
+                # user = User.objects.create_user(username, password1)
                 if user:
                     authenticate(request, username, password1)
             except ValidationError as e:
@@ -119,13 +98,6 @@ def register(request):
                 return render(request, "books/register.html")
             return redirect("index")
     return render(request, "books/register.html")
-```
-
-**helpers.py**
-```python
-from django.contrib.auth.models import User
-# from .models import User
-...
 ```
 
 ### 3. [A03:2021 – Injection](https://owasp.org/Top10/A03_2021-Injection/)
@@ -140,26 +112,57 @@ For example by leaving a comment
 ```
 page visitors will be always redirected to the site `craftinginterpreters.com`. 
 
-**Fix**: Use Django templates. Django templates protect against the majority of XSS attacks. The following changes to the code will enable Django template in `book`-view:
+**Fix**: Use Django templates. Django templates protect against the majority of XSS attacks. 
 
-**urls.py**
-```python 
-urlpatterns = [
-    ...
-    path("comment/<slug:slug>", views.comment, name="comment"),
-]
-```
+Comment out the existing **book()**-view and uncomment the 
+view with the *A03:2021 – Injection fix* text:
 
 **views.py**
-```python 
+```python
+"""
+A03:2021 – Injection fix: use Django templates
+"""
 @login_required
 def book(request, slug):
     book = get_object_or_404(Book, slug=slug)
     comments = book.comments.all()
     return render(request, "books/book.html", {"book" : book, "comments": comments})
+
+'''
+##################
+OLD IMPLEMENTATION
+##################
+@login_required
+def book(request, slug):
+    book = get_object_or_404(Book, slug=slug)
+    comments = book.comments.all()
+    comments_as_string = ""
+    for comment in comments:
+        comments_as_string += str(comment) + "<br/>"
+
+    book_page_without_template = f"""
+    <button><a href="/">Home</a></button><br/>
+    {book.title}<br/>
+    {book.author}<br/>
+    {book.published}<br/>
+    <br/>
+    Leave a comment:<br/>
+    <form action="/comment" method="POST">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{csrf.get_token(request)}">
+        <input type="text" name="comment"><br/>
+        <input type="hidden" name="book_slug" value="{book.slug}">
+        <input type="submit" value="add comment">
+    </form>
+
+    {comments_as_string}
+    """
+    return HttpResponse(book_page_without_template)
+'''
 ```
 
-**book.html**
+Fixed view uses the book.html-template:
+
+**books/templates/books/book.html**
 
 ```html
 {% extends "books/base.html" %}
@@ -190,12 +193,27 @@ def book(request, slug):
 
 **Fix**: Use Django built-in `UserCreationForm` which by default enforces strong passwords. 
 
-**views.py**
+Import the `User` model from `django.contrib.auth.models` instead of `.models` in **views.py** and **helpers.py**. In **views.py** import `UserCreationForm` from `django.contrib.auth.models`: 
 
+**books/views.py**
 ```python
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 # from .models import User
+```
+
+**books/helpers.py**
+```python
+from django.contrib.auth.models import User
+# from .models import User
+```
+
+Comment out the existing **register()** view in **views.py** and uncomment the one
+with the text *4. A07:2021 – Identification and Authentication Failures fix*:
+
+**books/views.py**
+
+```python
 """
 ##################
 OLD IMPLEMENTATION
@@ -238,18 +256,9 @@ def register(request):
     return render(request, "books/register_with_forms.html", {"registration_form": registration_form})
 ```
 
-We also change **helpers.py** to use Django built-in `User`-model with `UserCreationForm`:
+Fixed view uses the register_with_forms.html-template:
 
-**helpers.py**
-```python
-from django.contrib.auth.models import User
-# from .models import User
-...
-```
-
-And create a new registration template which uses forms:
-
-**register_with_forms.html**
+**books/templates/books/register_with_forms.html**
 ```html
 % extends "books/base.html" %}
 
@@ -274,12 +283,23 @@ And create a new registration template which uses forms:
 
 **Fix**: Set `DEBUG` to `False` and provide the list of allowed hosts.
 
-**bookstore/bookstore/settings.py**
+Comment out existing debug settings and uncomment the fixed setting with the text *A05:2021 - Security Misconfiguration fix*:
+
+**bookstore/settings.py**
 ```python
-...
+"""
+DEBUG = True
+
+ALLOWED_HOSTS = []
+"""
+
+"""
+A05:2021 – Security Misconfiguration fix: 
+disable DEBUG mode in production
+"""
 DEBUG = False
-ALLOWED_HOSTS = ["*"] 
-...
+# Should have the actual host list
+ALLOWED_HOSTS = ["*"]
 ```
 
 ### 6. [A07:2021 – Identification and Authentication Failures](https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/)
@@ -293,12 +313,19 @@ ALLOWED_HOSTS = ["*"]
 ```sh
 $ export SECRET_KEY=secret
 ```
+Comment out the existing `SECRET_KEY` and uncomment imports and code with the text *6. A07:2021 – Identification and Authentication Failures fix*:
 
-**bookstore/bookstore/settings.py**
+**bookstore/settings.py**
 ```python
 import os
 from django.core.exceptions import ImproperlyConfigured
 
+# SECRET_KEY = 'django-insecure-&f7)%=_8pb=+222o8za^$oe+wg6+gj+ksq0w43c(3x=gsb%z#j'
+
+"""
+6. A07:2021 – Identification and Authentication Failures fix: 
+   make SECRET_KEY environment variable
+"""
 try: 
     SECRET_KEY = os.environ['SECRET_KEY']
 except KeyError:

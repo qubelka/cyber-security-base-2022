@@ -8,7 +8,5 @@ urlpatterns = [
     path("logout", views.logout, name="logout"),
     path("statistics", views.statistics, name="statistics"),
     path("books/<slug:slug>", views.book, name="book"),
-    # A03:2021 – Injection fix: use Django templates
-    # path("comment/<slug:slug>", views.comment, name="comment"),
     path("comment", views.comment, name="comment"),
 ]

@@ -13,6 +13,10 @@ from django.views.decorators.http import require_POST
 # from django.contrib.auth.models import User
 from .models import User
 from .models import Book, Comment
+
+# A01:2021 – Broken Access Control fix:
+# Decorator checks whether the user is staff member.
+# from .helpers import staff_only
 from .helpers import (
     check_registration,
     authenticate,
@@ -28,15 +32,20 @@ def index(request):
     books = Book.objects.all()
     return render(request, "books/index.html", {"user": user, "books": books})
 
+"""
+A03:2021 – Injection fix: use Django templates
 
 @login_required
 def book(request, slug):
     book = get_object_or_404(Book, slug=slug)
     comments = book.comments.all()
+    return render(request, "books/book.html", {"book" : book, "comments": comments})
+"""
 
-    # A03:2021 – Injection fix: use Django templates
-    # return render(request, "books/book.html", {"book" : book, "comments": comments})
-
+@login_required
+def book(request, slug):
+    book = get_object_or_404(Book, slug=slug)
+    comments = book.comments.all()
     comments_as_string = ""
     for comment in comments:
         comments_as_string += str(comment) + "<br/>"
@@ -75,6 +84,7 @@ def register(request):
                 user = registration_form.save(commit=False)
                 user.set_password(registration_form.cleaned_data["password1"])
                 user.save()
+                authenticate(request, cleaned_data["username"], cleaned_data["password1"])
                 return redirect("index")
             else:
                 messages.error(request, "Username already registered.")
@@ -133,8 +143,6 @@ def statistics(request):
 
 @require_POST
 @login_required
-# A03:2021 – Injection fix: use Django templates
-# def comment(request, slug):
 def comment(request):
     comment = request.POST.get("comment")
     slug = request.POST.get("book_slug")
